@@ -1,0 +1,848 @@
+{
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Glog.AI",
+          "organization": "Glog.AI",
+          "fullName": "Glog, Making software more secure",
+          "version": "1.0.0",
+          "semanticVersion": "1.0.0",
+          "informationUri": "https://www.glog.ai",
+          "rules": [
+            {
+              "id": "glog-d8bcc7e2-7d2b-4c63-86a8-981d8727e49e",
+              "help": {
+                "text": "",
+                "markdown": "### Description\n\nThe vulnerability in question arises from the use of the `memcpy` function in C++. The `memcpy` function is used to copy a block of memory from one location to another. However, if not used carefully, it can lead to buffer overflows, which occur when data is written beyond the boundaries of the destination buffer. This can result in undefined behavior, including data corruption, crashes, and security vulnerabilities such as arbitrary code execution.\n\nIn the provided code snippet:\n\n```cpp\nmemcpy(send_buf.get(), &get_report_req, send_buf_hdr_size);\n```\n\nThe vulnerability may occur if `send_buf_hdr_size` is larger than the size of the buffer pointed to by `send_buf.get()`. This can lead to writing beyond the allocated memory for `send_buf`, potentially overwriting other memory areas.\n\n### General Mitigation Advice\n\n1. **Validate Buffer Sizes**: Always ensure that the destination buffer is large enough to hold the data being copied. This can be done by comparing the size of the destination buffer with the size of the data being copied.\n\n2. **Use Safer Alternatives**: Consider using safer alternatives like `std::copy` or `std::memmove` which provide better safety guarantees and are less prone to misuse.\n\n3. **Static Analysis Tools**: Use static analysis tools to detect potential buffer overflows and other vulnerabilities in your code.\n\n4. **Code Reviews**: Regularly conduct code reviews to catch potential vulnerabilities early in the development process.\n\n### Source Code Fix Recommendation\n\nTo fix the specific vulnerability, ensure that the size of the destination buffer is checked before performing the `memcpy` operation. Here is a revised version of the code:\n\n```cpp\n#include <cstring> // For memcpy\n#include <algorithm> // For std::min\n\n// Assuming send_buf is a smart pointer with a method to get the size of the buffer\nsize_t send_buf_size = send_buf.get_size(); // Hypothetical method to get buffer size\n\nif (send_buf_hdr_size <= send_buf_size) {\n    memcpy(send_buf.get(), &get_report_req, send_buf_hdr_size);\n} else {\n    // Handle error: buffer size is insufficient\n    // This could be logging an error, throwing an exception, etc.\n}\n```\n\n### Library Dependencies\n\nTo execute the code example properly, the following libraries are required:\n\n- `<cstring>`: For the `memcpy` function.\n- `<algorithm>`: For the `std::min` function, if used.\n\n### OWASP Resources\n\n- [OWASP Top Ten](https://owasp.org/www-project-top-ten/)\n- [OWASP Secure Coding Practices](https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/)\n\n### Common Weakness Enumeration (CWE)\n\n- [CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')](https://cwe.mitre.org/data/definitions/120.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS121708"
+                ]
+              }
+            },
+            {
+              "id": "glog-c56bf5c9-e9ab-4274-b4b2-a5a15d93c491",
+              "help": {
+                "text": "",
+                "markdown": "### Description\n\nIn C++ programming, using weak or non-cryptographic random number generators, such as the `rand()` function, can lead to vulnerabilities, especially in security-sensitive applications. The `rand()` function is not suitable for cryptographic purposes because it generates predictable sequences of numbers if the seed is known. This predictability can be exploited by attackers to compromise the security of the application.\n\n### General Mitigation Advice\n\nTo mitigate this vulnerability, use a cryptographically secure random number generator. In C++, the `<random>` library provides better alternatives, such as `std::random_device` and `std::mt19937`, which can be used to generate random numbers more securely.\n\n### Source Code Fix Recommendation\n\nReplace the use of `rand()` with a more secure random number generator from the `<random>` library. Here is an example of how to do this:\n\n```cpp\n#include <iostream>\n#include <random>\n\nint main() {\n    // Create a random device and a Mersenne Twister random number generator\n    std::random_device rd;\n    std::mt19937 gen(rd());\n\n    // Define a distribution range\n    std::uniform_int_distribution<> dis(1, 100);\n\n    // Generate a random number\n    int random_number = dis(gen);\n\n    std::cout << \"Secure random number: \" << random_number << std::endl;\n\n    return 0;\n}\n```\n\n### Library Dependencies\n\nTo execute the above code example properly, the following library is required:\n\n- `<random>`: This library provides facilities for generating random numbers.\n\n### OWASP Resources\n\n- [OWASP Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html)\n\n### Common Weakness Enumeration (CWE)\n\n- [CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)](https://cwe.mitre.org/data/definitions/338.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS148264"
+                ]
+              }
+            },
+            {
+              "id": "glog-26876e9c-d0e7-497b-84ef-5d65c627d459",
+              "help": {
+                "text": "",
+                "markdown": "### Description\n\nThe \"Detected Issue with C Function (memcpy)\" vulnerability in C++ arises when the `memcpy` function is used improperly, potentially leading to buffer overflows. This can occur if the destination buffer is not large enough to hold the data being copied, or if the source or destination pointers are invalid. In the provided code snippet:\n\n```cpp\nmemcpy(send_buf.get() + send_buf_hdr_size, attest_data, send_buf_body_size);\n```\n\nThe vulnerability may occur if `send_buf` does not have enough allocated space to accommodate `send_buf_hdr_size + send_buf_body_size`, or if `attest_data` is not properly validated.\n\n### General Mitigation Advice\n\n1. **Validate Buffer Sizes**: Ensure that the destination buffer is large enough to hold the data being copied.\n2. **Use Safer Functions**: Consider using safer alternatives like `memmove` or `std::copy` which provide better safety checks.\n3. **Input Validation**: Validate all input data to ensure it is within expected bounds.\n4. **Bounds Checking**: Implement bounds checking to prevent buffer overflows.\n\n### Source Code Fix Recommendation\n\nTo mitigate the vulnerability, ensure that the buffer size is checked before performing the `memcpy` operation. Here is a revised version of the code:\n\n```cpp\n#include <cstring> // Required for memcpy\n#include <memory>  // Required for std::unique_ptr\n\n// Assuming send_buf is a std::unique_ptr<char[]> and is properly initialized\nif (send_buf_hdr_size + send_buf_body_size <= send_buf_size) {\n    memcpy(send_buf.get() + send_buf_hdr_size, attest_data, send_buf_body_size);\n} else {\n    // Handle error: buffer size is insufficient\n}\n```\n\n### Library Dependencies\n\nTo execute the code example properly, the following libraries are required:\n\n- `<cstring>`: For `memcpy`.\n- `<memory>`: For `std::unique_ptr`.\n\n### Relevant Resources\n\n- [OWASP Buffer Overflow](https://owasp.org/www-community/vulnerabilities/Buffer_Overflow)\n- [CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')](https://cwe.mitre.org/data/definitions/120.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS121708"
+                ]
+              }
+            },
+            {
+              "id": "glog-5ed37af4-7fe9-4391-8255-1fc7548a5858",
+              "help": {
+                "text": "",
+                "markdown": "### Description\n\nIn C++ programming, using weak or non-cryptographic random number generators, such as the `rand()` function, can lead to vulnerabilities, especially in security-sensitive applications. The `rand()` function is not suitable for cryptographic purposes because it generates predictable sequences of numbers if the seed is known. This predictability can be exploited by attackers to compromise the security of the application.\n\n### General Mitigation Advice\n\nTo mitigate this vulnerability, use a cryptographically secure random number generator. In C++, the `<random>` library provides better alternatives, such as `std::random_device` and `std::mt19937`, which can be used to generate random numbers more securely.\n\n### Source Code Fix Recommendation\n\nReplace the use of `rand()` with a more secure random number generator from the `<random>` library. Here is an example of how to do this:\n\n```cpp\n#include <iostream>\n#include <random>\n\nint main() {\n    // Create a random device and a Mersenne Twister random number generator\n    std::random_device rd;\n    std::mt19937 gen(rd());\n\n    // Define a distribution range\n    std::uniform_int_distribution<> dis(1, 100);\n\n    // Generate a random number\n    int random_number = dis(gen);\n\n    std::cout << \"Secure random number: \" << random_number << std::endl;\n\n    return 0;\n}\n```\n\n### Library Dependencies\n\nTo execute the above code example properly, the following library is required:\n\n- `<random>`: This library provides facilities for generating random numbers.\n\n### OWASP Resources\n\n- [OWASP Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html)\n\n### Common Weakness Enumeration (CWE)\n\n- [CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)](https://cwe.mitre.org/data/definitions/338.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS148264"
+                ]
+              }
+            },
+            {
+              "id": "glog-f3de6b48-9e60-4143-a43d-41b4b79ddd4a",
+              "help": {
+                "text": "",
+                "markdown": "### Description\n\nIn C++ programming, using weak or non-cryptographic random number generators, such as the `rand()` function, can lead to vulnerabilities, especially in security-sensitive applications. The `rand()` function is not suitable for cryptographic purposes because it generates predictable sequences of numbers if the seed is known. This predictability can be exploited by attackers to compromise the security of the application.\n\n### General Mitigation Advice\n\nTo mitigate this vulnerability, use a cryptographically secure random number generator. In C++, the `<random>` library provides better alternatives, such as `std::random_device` and `std::mt19937`, which can be used to generate random numbers more securely.\n\n### Source Code Fix Recommendation\n\nReplace the use of `rand()` with a more secure random number generator from the `<random>` library. Here is an example of how to do this:\n\n```cpp\n#include <iostream>\n#include <random>\n\nint main() {\n    // Create a random device and a Mersenne Twister random number generator\n    std::random_device rd;\n    std::mt19937 gen(rd());\n\n    // Define a distribution range\n    std::uniform_int_distribution<> dis(1, 100);\n\n    // Generate a random number\n    int random_number = dis(gen);\n\n    std::cout << \"Secure random number: \" << random_number << std::endl;\n\n    return 0;\n}\n```\n\n### Library Dependencies\n\nTo execute the above code example properly, the following library is required:\n\n- `<random>`: This library provides facilities for generating random numbers.\n\n### OWASP Resources\n\n- [OWASP Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html)\n\n### Common Weakness Enumeration (CWE)\n\n- [CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)](https://cwe.mitre.org/data/definitions/338.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS148264"
+                ]
+              }
+            },
+            {
+              "id": "glog-286123e7-89d5-463c-82fd-b835e25a358a",
+              "help": {
+                "text": "",
+                "markdown": "### Description\n\nIn C++ programming, using weak or non-cryptographic random number generators, such as the `rand()` function, can lead to vulnerabilities, especially in security-sensitive applications. The `rand()` function is not suitable for cryptographic purposes because it generates predictable sequences of numbers if the seed is known. This predictability can be exploited by attackers to compromise the security of the application.\n\n### General Mitigation Advice\n\nTo mitigate this vulnerability, use a cryptographically secure random number generator. In C++, the `<random>` library provides better alternatives, such as `std::random_device` and `std::mt19937`, which can be used to generate random numbers more securely.\n\n### Source Code Fix Recommendation\n\nReplace the use of `rand()` with a more secure random number generator from the `<random>` library. Here is an example of how to do this:\n\n```cpp\n#include <iostream>\n#include <random>\n\nint main() {\n    // Create a random device and a Mersenne Twister random number generator\n    std::random_device rd;\n    std::mt19937 gen(rd());\n\n    // Define a distribution range\n    std::uniform_int_distribution<> dis(1, 100);\n\n    // Generate a random number\n    int random_number = dis(gen);\n\n    std::cout << \"Secure random number: \" << random_number << std::endl;\n\n    return 0;\n}\n```\n\n### Library Dependencies\n\nTo execute the above code example properly, the following library is required:\n\n- `<random>`: This library provides facilities for generating random numbers.\n\n### OWASP Resources\n\n- [OWASP Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html)\n\n### Common Weakness Enumeration (CWE)\n\n- [CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)](https://cwe.mitre.org/data/definitions/338.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS148264"
+                ]
+              }
+            },
+            {
+              "id": "glog-ff776657-5415-435c-8c9c-a1ff8bba679d",
+              "help": {
+                "text": "",
+                "markdown": "### Description\n\nThe vulnerability in question involves the use of the `memcpy` function in C++. The `memcpy` function is used to copy a block of memory from one location to another. The specific issue arises when the size of the data being copied exceeds the size of the destination buffer, leading to a buffer overflow. This can result in undefined behavior, including data corruption, crashes, or security vulnerabilities such as arbitrary code execution.\n\nIn the provided code snippet, the `memcpy` function is used as follows:\n\n```cpp\nmemcpy(quote->data, recv_buf.get() + get_report_rsp->rtmr_log_offset, get_report_rsp->header.size - sizeof(acon_get_report_rsp_t));\n```\n\nThe vulnerability occurs if `get_report_rsp->header.size - sizeof(acon_get_report_rsp_t)` is larger than the allocated size of `quote->data`. This can lead to writing beyond the bounds of `quote->data`.\n\n### General Mitigation Advice\n\n1. **Bounds Checking**: Always ensure that the destination buffer is large enough to hold the data being copied. Perform explicit bounds checking before calling `memcpy`.\n\n2. **Use Safer Alternatives**: Consider using safer alternatives like `std::copy` or `std::memmove` if overlapping memory regions are involved, or `std::vector` for automatic bounds checking.\n\n3. **Static Analysis Tools**: Use static analysis tools to detect potential buffer overflows in your code.\n\n4. **Code Reviews**: Regularly conduct code reviews to catch potential vulnerabilities early in the development process.\n\n### Source Code Fix Recommendation\n\nTo fix the vulnerability, ensure that the size of the data being copied does not exceed the size of the destination buffer. Here is a revised version of the code with added bounds checking:\n\n```cpp\nsize_t data_size = get_report_rsp->header.size - sizeof(acon_get_report_rsp_t);\nif (data_size <= sizeof(quote->data)) {\n    memcpy(quote->data, recv_buf.get() + get_report_rsp->rtmr_log_offset, data_size);\n} else {\n    // Handle error: data_size exceeds the size of quote->data\n    // This could involve logging an error, throwing an exception, or other error handling logic\n}\n```\n\n### Library Dependencies\n\nThe code example provided does not explicitly require any additional libraries beyond the standard C++ library. However, ensure that the following headers are included:\n\n```cpp\n#include <cstring>  // For memcpy\n#include <cstddef>  // For size_t\n```\n\n### Relevant OWASP Resources\n\n- [OWASP Top Ten](https://owasp.org/www-project-top-ten/)\n- [OWASP Secure Coding Practices](https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/)\n\n### Common Weakness Enumeration (CWE)\n\n- [CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')](https://cwe.mitre.org/data/definitions/120.html)\n- [CWE-787: Out-of-bounds Write](https://cwe.mitre.org/data/definitions/787.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS121708"
+                ]
+              }
+            },
+            {
+              "id": "glog-9be68617-e3c3-48a5-9eb4-1cd9c3717c5d",
+              "help": {
+                "text": "",
+                "markdown": "### Description\n\nThe vulnerability associated with the `strlen` function in C/C++ arises when it is used without proper validation of the input data. The `strlen` function calculates the length of a string by searching for the null terminator (`\\0`). If the input data is not null-terminated or is improperly validated, it can lead to buffer overflows, reading beyond the buffer, or undefined behavior, potentially causing security vulnerabilities such as information disclosure or application crashes.\n\n### General Mitigation Advice\n\n1. **Input Validation**: Always validate input data to ensure it is null-terminated before passing it to `strlen`.\n2. **Use Safer Alternatives**: Consider using safer string handling functions like `strnlen` which allows specifying a maximum length to prevent reading beyond the buffer.\n3. **Buffer Management**: Ensure that buffers are properly sized and managed to prevent overflows.\n4. **Static Analysis**: Use static analysis tools to detect potential vulnerabilities in code.\n\n### Source Code Fix Recommendation\n\n```cpp\n#include <cstring>\n#include <iostream>\n\n// Example function that uses strlen safely\nsize_t safe_strlen(const char* data, size_t max_length) {\n    if (data == nullptr) {\n        return 0;\n    }\n    return strnlen(data, max_length);\n}\n\nint main() {\n    const size_t MAX_LENGTH = 1024;\n    char attest_data[MAX_LENGTH] = \"Example data\";\n\n    // Use safe_strlen instead of strlen\n    size_t length = safe_strlen(attest_data, MAX_LENGTH);\n    std::cout << \"Length of attest_data: \" << length << std::endl;\n\n    return 0;\n}\n```\n\n### Library Dependencies\n\nTo execute the above code example, the following standard library headers are required:\n\n- `<cstring>`: For `strnlen` function.\n- `<iostream>`: For input and output operations.\n\n### OWASP Resources\n\n- [OWASP Top Ten](https://owasp.org/www-project-top-ten/)\n- [OWASP Secure Coding Practices](https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/)\n\n### Common Weakness Enumeration (CWE)\n\n- [CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')](https://cwe.mitre.org/data/definitions/120.html)\n- [CWE-126: Buffer Over-read](https://cwe.mitre.org/data/definitions/126.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS140021"
+                ]
+              }
+            },
+            {
+              "id": "glog-58b3c736-7393-406a-9d3e-364af09c7386",
+              "help": {
+                "text": "",
+                "markdown": "### Description\n\nThe vulnerability related to the `strlen` function in C++ arises when it is used improperly, particularly with untrusted input. The `strlen` function calculates the length of a string by searching for the null terminator. If the input is not properly validated or sanitized, it can lead to buffer overflows, which can be exploited to execute arbitrary code or cause a denial of service.\n\n### General Mitigation Advice\n\n1. **Input Validation**: Always validate and sanitize input data before processing it.\n2. **Use Safer Alternatives**: Consider using safer string handling functions like `strnlen` or C++ string classes (`std::string`) that manage memory automatically.\n3. **Boundary Checks**: Ensure that buffer sizes are checked and managed properly to prevent overflows.\n4. **Static Analysis**: Use static analysis tools to detect potential vulnerabilities in the code.\n\n### Source Code Fix Recommendation\n\n```cpp\n#include <iostream>\n#include <cstring>\n#include <string>\n\n// Define a safe maximum path length\nconst size_t MAX_PATH_LENGTH = 108;\n\nvoid processSocketPath(const char* SOCKET_PATH) {\n    // Use strnlen to limit the length of the string\n    size_t pathLength = strnlen(SOCKET_PATH, MAX_PATH_LENGTH);\n\n    if (pathLength >= MAX_PATH_LENGTH) {\n        std::cerr << \"Error: SOCKET_PATH is too long.\" << std::endl;\n        return;\n    }\n\n    // Proceed with processing the SOCKET_PATH safely\n    std::cout << \"Processing socket path: \" << SOCKET_PATH << std::endl;\n}\n\nint main() {\n    const char* SOCKET_PATH = \"/tmp/socket\";\n    processSocketPath(SOCKET_PATH);\n    return 0;\n}\n```\n\n### Library Dependencies\n\nTo execute the above code, the following standard libraries are required:\n\n- `<iostream>`: For input and output stream operations.\n- `<cstring>`: For C-style string handling functions.\n- `<string>`: For C++ string class.\n\n### Relevant Resources\n\n- [OWASP Top Ten](https://owasp.org/www-project-top-ten/)\n- [OWASP Secure Coding Practices](https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/)\n\n### Common Weakness Enumeration\n\n- [CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')](https://cwe.mitre.org/data/definitions/120.html)\n- [CWE-134: Use of Externally-Controlled Format String](https://cwe.mitre.org/data/definitions/134.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS140021"
+                ]
+              }
+            },
+            {
+              "id": "glog-31591bf4-b57e-4141-b4fc-b3f187cc0e65",
+              "help": {
+                "text": "",
+                "markdown": "### Description\n\nThe \"Detected Use of Prohibited C Function (strncpy)\" vulnerability arises when the `strncpy` function is used in a way that can lead to buffer overflows or other unintended behaviors. In C++, `strncpy` is often used to copy strings, but it does not guarantee null-termination if the source string is longer than the destination buffer. This can lead to vulnerabilities such as buffer overflows, which can be exploited to execute arbitrary code or cause a program to crash.\n\n### General Mitigation Advice\n\n1. **Use Safer Alternatives**: Consider using safer string handling functions like `strlcpy` or `snprintf`, which ensure null-termination.\n2. **Manual Null-Termination**: If `strncpy` must be used, ensure that the destination buffer is manually null-terminated.\n3. **Buffer Size Management**: Always ensure that the destination buffer is large enough to hold the source string plus the null terminator.\n4. **Static Analysis Tools**: Use static analysis tools to detect and fix potential buffer overflow vulnerabilities.\n\n### Source Code Fix Recommendation\n\nTo fix the specific vulnerability sink:\n\n```cpp\n#include <cstring> // Required for strncpy\n\n// Original code\n// strncpy(client_addr.sun_path, SOCKET_PATH, sizeof(client_addr.sun_path));\n\n// Fixed code using strlcpy (if available) or manual null-termination\n#if defined(__APPLE__) || defined(__FreeBSD__)\n#include <bsd/string.h> // Required for strlcpy\nstrlcpy(client_addr.sun_path, SOCKET_PATH, sizeof(client_addr.sun_path));\n#else\nstrncpy(client_addr.sun_path, SOCKET_PATH, sizeof(client_addr.sun_path) - 1);\nclient_addr.sun_path[sizeof(client_addr.sun_path) - 1] = '\\0'; // Ensure null-termination\n#endif\n```\n\n### Library Dependencies\n\n- `<cstring>`: Required for `strncpy`.\n- `<bsd/string.h>`: Required for `strlcpy` on systems where it is available (e.g., macOS, FreeBSD).\n\n### OWASP Resources\n\n- [OWASP Top Ten](https://owasp.org/www-project-top-ten/)\n- [OWASP Secure Coding Practices](https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/)\n\n### Common Weakness Enumeration (CWE)\n\n- [CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')](https://cwe.mitre.org/data/definitions/120.html)\n- [CWE-119: Improper Restriction of Operations within the Bounds of a Memory Buffer](https://cwe.mitre.org/data/definitions/119.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS111237"
+                ]
+              }
+            },
+            {
+              "id": "glog-877dd88b-616e-4cec-b123-d57fd159d16f",
+              "help": {
+                "text": "",
+                "markdown": "### Description\n\nThe \"Detected Issue with C Function (memcpy)\" vulnerability in C++ arises when the `memcpy` function is used improperly, potentially leading to buffer overflows, data corruption, or undefined behavior. This vulnerability typically occurs when the destination buffer is not large enough to hold the data being copied, or when the source and destination overlap, which `memcpy` does not handle correctly.\n\n### General Mitigation Advice\n\n1. **Buffer Size Validation**: Always ensure that the destination buffer is large enough to accommodate the data being copied.\n2. **Use Safer Alternatives**: Consider using safer alternatives like `std::copy` or `std::memmove` if overlapping memory regions are involved.\n3. **Boundary Checks**: Implement boundary checks to prevent buffer overflows.\n4. **Static Analysis Tools**: Use static analysis tools to detect potential buffer overflows and other vulnerabilities in your code.\n\n### Source Code Fix Recommendation\n\nTo mitigate the vulnerability in the specific code snippet:\n\n```cpp\nmemcpy(msg_buf.get(), &msg_hdr, msg_hdr_size);\n```\n\nEnsure that `msg_buf` is properly sized to hold `msg_hdr_size` bytes. Here is a revised version of the code with added checks:\n\n```cpp\n#include <iostream>\n#include <memory>\n#include <cstring>\n\n// Assuming msg_hdr and msg_hdr_size are defined elsewhere\nstruct MsgHeader {\n    // Define the structure of MsgHeader\n};\n\nint main() {\n    MsgHeader msg_hdr;\n    size_t msg_hdr_size = sizeof(MsgHeader);\n\n    // Ensure msg_buf is properly sized\n    std::unique_ptr<char[]> msg_buf(new char[msg_hdr_size]);\n\n    // Perform the copy with boundary checks\n    if (msg_buf && msg_hdr_size <= sizeof(MsgHeader)) {\n        std::memcpy(msg_buf.get(), &msg_hdr, msg_hdr_size);\n    } else {\n        std::cerr << \"Buffer size is insufficient or invalid.\" << std::endl;\n    }\n\n    return 0;\n}\n```\n\n### Library Dependencies\n\nThe code example requires the following standard C++ libraries:\n\n- `<iostream>`: For input and output operations.\n- `<memory>`: For using smart pointers like `std::unique_ptr`.\n- `<cstring>`: For using the `memcpy` function.\n\n### Relevant Resources\n\n- [OWASP Buffer Overflow](https://owasp.org/www-community/vulnerabilities/Buffer_Overflow)\n- [CWE-119: Improper Restriction of Operations within the Bounds of a Memory Buffer](https://cwe.mitre.org/data/definitions/119.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS121708"
+                ]
+              }
+            }
+          ],
+          "language": "en-US",
+          "contents": [
+            "localizedData",
+            "nonLocalizedData"
+          ],
+          "isComprehensive": false
+        }
+      },
+      "language": "en-US",
+      "results": [
+        {
+          "ruleId": "glog-d8bcc7e2-7d2b-4c63-86a8-981d8727e49e",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Problematic C function detected (memcpy)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "samples/quote/server/src/quote_server.cpp"
+                },
+                "region": {
+                  "startLine": 152,
+                  "startColumn": 4,
+                  "endLine": 152,
+                  "endColumn": 62,
+                  "charOffset": 3940,
+                  "charLength": 58,
+                  "snippet": {
+                    "text": "memcpy(send_buf.get(), &get_report_req, send_buf_hdr_size)",
+                    "rendered": {
+                      "text": "memcpy(send_buf.get(), &get_report_req, send_buf_hdr_size)",
+                      "markdown": "`memcpy(send_buf.get(), &get_report_req, send_buf_hdr_size)`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "There are a number of conditions in which memcpy can introduce a vulnerability (mismatched buffer sizes, null pointers, etc.). More secure alternitives perform additional validation of the source and destination buffer"
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "samples/quote/server/src/quote_server.cpp"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 3940,
+                        "charLength": 58
+                      },
+                      "insertedContent": {
+                        "text": "memcpy_s(send_buf.get(), <size of send_buf.get()>,  &get_report_req,  send_buf_hdr_size)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "BestPractice",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "API.DangerousAPI.ProblematicFunction"
+            ]
+          }
+        },
+        {
+          "ruleId": "glog-c56bf5c9-e9ab-4274-b4b2-a5a15d93c491",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "Do not use weak/non-cryptographic random number generators"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "samples/quote/server/src/quote_server.cpp"
+                },
+                "region": {
+                  "startLine": 149,
+                  "startColumn": 57,
+                  "endLine": 149,
+                  "endColumn": 62,
+                  "charOffset": 3886,
+                  "charLength": 5,
+                  "snippet": {
+                    "text": "rand(",
+                    "rendered": {
+                      "text": "rand(",
+                      "markdown": "`rand(`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "Important",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "Cryptography.PRNG.Weak"
+            ]
+          }
+        },
+        {
+          "ruleId": "glog-26876e9c-d0e7-497b-84ef-5d65c627d459",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Problematic C function detected (memcpy)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "samples/quote/server/src/quote_server.cpp"
+                },
+                "region": {
+                  "startLine": 153,
+                  "startColumn": 4,
+                  "endLine": 153,
+                  "endColumn": 79,
+                  "charOffset": 4004,
+                  "charLength": 75,
+                  "snippet": {
+                    "text": "memcpy(send_buf.get() + send_buf_hdr_size, attest_data, send_buf_body_size)",
+                    "rendered": {
+                      "text": "memcpy(send_buf.get() + send_buf_hdr_size, attest_data, send_buf_body_size)",
+                      "markdown": "`memcpy(send_buf.get() + send_buf_hdr_size, attest_data, send_buf_body_size)`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "There are a number of conditions in which memcpy can introduce a vulnerability (mismatched buffer sizes, null pointers, etc.). More secure alternitives perform additional validation of the source and destination buffer"
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "samples/quote/server/src/quote_server.cpp"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 4004,
+                        "charLength": 75
+                      },
+                      "insertedContent": {
+                        "text": "memcpy_s(send_buf.get() + send_buf_hdr_size, <size of send_buf.get() + send_buf_hdr_size>,  attest_data,  send_buf_body_size)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "BestPractice",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "API.DangerousAPI.ProblematicFunction"
+            ]
+          }
+        },
+        {
+          "ruleId": "glog-5ed37af4-7fe9-4391-8255-1fc7548a5858",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "Do not use weak/non-cryptographic random number generators"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "samples/quote/server/src/quote_server.cpp"
+                },
+                "region": {
+                  "startLine": 149,
+                  "startColumn": 41,
+                  "endLine": 149,
+                  "endColumn": 46,
+                  "charOffset": 3870,
+                  "charLength": 5,
+                  "snippet": {
+                    "text": "rand(",
+                    "rendered": {
+                      "text": "rand(",
+                      "markdown": "`rand(`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "Important",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "Cryptography.PRNG.Weak"
+            ]
+          }
+        },
+        {
+          "ruleId": "glog-f3de6b48-9e60-4143-a43d-41b4b79ddd4a",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "Do not use weak/non-cryptographic random number generators"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "samples/quote/server/src/quote_server.cpp"
+                },
+                "region": {
+                  "startLine": 148,
+                  "startColumn": 57,
+                  "endLine": 148,
+                  "endColumn": 62,
+                  "charOffset": 3821,
+                  "charLength": 5,
+                  "snippet": {
+                    "text": "rand(",
+                    "rendered": {
+                      "text": "rand(",
+                      "markdown": "`rand(`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "Important",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "Cryptography.PRNG.Weak"
+            ]
+          }
+        },
+        {
+          "ruleId": "glog-286123e7-89d5-463c-82fd-b835e25a358a",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "Do not use weak/non-cryptographic random number generators"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "samples/quote/server/src/quote_server.cpp"
+                },
+                "region": {
+                  "startLine": 148,
+                  "startColumn": 41,
+                  "endLine": 148,
+                  "endColumn": 46,
+                  "charOffset": 3805,
+                  "charLength": 5,
+                  "snippet": {
+                    "text": "rand(",
+                    "rendered": {
+                      "text": "rand(",
+                      "markdown": "`rand(`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "Important",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "Cryptography.PRNG.Weak"
+            ]
+          }
+        },
+        {
+          "ruleId": "glog-ff776657-5415-435c-8c9c-a1ff8bba679d",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Problematic C function detected (memcpy)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "samples/quote/server/src/quote_server.cpp"
+                },
+                "region": {
+                  "startLine": 183,
+                  "startColumn": 4,
+                  "endLine": 183,
+                  "endColumn": 133,
+                  "charOffset": 5267,
+                  "charLength": 129,
+                  "snippet": {
+                    "text": "memcpy(quote->data, recv_buf.get() + get_report_rsp->rtmr_log_offset, get_report_rsp->header.size - sizeof(acon_get_report_rsp_t)",
+                    "rendered": {
+                      "text": "memcpy(quote->data, recv_buf.get() + get_report_rsp->rtmr_log_offset, get_report_rsp->header.size - sizeof(acon_get_report_rsp_t)",
+                      "markdown": "`memcpy(quote->data, recv_buf.get() + get_report_rsp->rtmr_log_offset, get_report_rsp->header.size - sizeof(acon_get_report_rsp_t)`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "There are a number of conditions in which memcpy can introduce a vulnerability (mismatched buffer sizes, null pointers, etc.). More secure alternitives perform additional validation of the source and destination buffer"
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "samples/quote/server/src/quote_server.cpp"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 5267,
+                        "charLength": 129
+                      },
+                      "insertedContent": {
+                        "text": "memcpy_s(quote->data, <size of quote->data>,  recv_buf.get() + get_report_rsp->rtmr_log_offset,  get_report_rsp->header.size - sizeof(acon_get_report_rsp_t)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "BestPractice",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "API.DangerousAPI.ProblematicFunction"
+            ]
+          }
+        },
+        {
+          "ruleId": "glog-9be68617-e3c3-48a5-9eb4-1cd9c3717c5d",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Problematic C function detected (strlen)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "samples/quote/server/src/quote_server.cpp"
+                },
+                "region": {
+                  "startLine": 140,
+                  "startColumn": 32,
+                  "endLine": 140,
+                  "endColumn": 51,
+                  "charOffset": 3447,
+                  "charLength": 19,
+                  "snippet": {
+                    "text": "strlen(attest_data)",
+                    "rendered": {
+                      "text": "strlen(attest_data)",
+                      "markdown": "`strlen(attest_data)`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "If a string is missing a null terminator, strlen will read past the end of the buffer"
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "samples/quote/server/src/quote_server.cpp"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 3447,
+                        "charLength": 19
+                      },
+                      "insertedContent": {
+                        "text": "strlen_s(attest_data, <size of attest_data>)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "description": {
+                "text": "If a string is missing a null terminator, strlen will read past the end of the buffer"
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "samples/quote/server/src/quote_server.cpp"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 3447,
+                        "charLength": 19
+                      },
+                      "insertedContent": {
+                        "text": "strnlen(attest_data, <size of attest_data>)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "BestPractice",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "API.DangerousAPI.ProblematicFunction"
+            ]
+          }
+        },
+        {
+          "ruleId": "glog-58b3c736-7393-406a-9d3e-364af09c7386",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Problematic C function detected (strlen)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "samples/quote/server/src/quote_server.cpp"
+                },
+                "region": {
+                  "startLine": 121,
+                  "startColumn": 111,
+                  "endLine": 121,
+                  "endColumn": 130,
+                  "charOffset": 2996,
+                  "charLength": 19,
+                  "snippet": {
+                    "text": "strlen(SOCKET_PATH)",
+                    "rendered": {
+                      "text": "strlen(SOCKET_PATH)",
+                      "markdown": "`strlen(SOCKET_PATH)`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "If a string is missing a null terminator, strlen will read past the end of the buffer"
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "samples/quote/server/src/quote_server.cpp"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 2996,
+                        "charLength": 19
+                      },
+                      "insertedContent": {
+                        "text": "strlen_s(SOCKET_PATH, <size of SOCKET_PATH>)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "description": {
+                "text": "If a string is missing a null terminator, strlen will read past the end of the buffer"
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "samples/quote/server/src/quote_server.cpp"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 2996,
+                        "charLength": 19
+                      },
+                      "insertedContent": {
+                        "text": "strnlen(SOCKET_PATH, <size of SOCKET_PATH>)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "BestPractice",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "API.DangerousAPI.ProblematicFunction"
+            ]
+          }
+        },
+        {
+          "ruleId": "glog-31591bf4-b57e-4141-b4fc-b3f187cc0e65",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "Banned C function detected (strncpy)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "samples/quote/server/src/quote_server.cpp"
+                },
+                "region": {
+                  "startLine": 119,
+                  "startColumn": 8,
+                  "endLine": 119,
+                  "endColumn": 79,
+                  "charOffset": 2806,
+                  "charLength": 71,
+                  "snippet": {
+                    "text": "strncpy(client_addr.sun_path, SOCKET_PATH, sizeof(client_addr.sun_path)",
+                    "rendered": {
+                      "text": "strncpy(client_addr.sun_path, SOCKET_PATH, sizeof(client_addr.sun_path)",
+                      "markdown": "`strncpy(client_addr.sun_path, SOCKET_PATH, sizeof(client_addr.sun_path)`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "strncpy is dangerous, as if the source contains 'n' or more characters, it will not null terminate the destination."
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "samples/quote/server/src/quote_server.cpp"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 2806,
+                        "charLength": 71
+                      },
+                      "insertedContent": {
+                        "text": "strcpy_s(client_addr.sun_path,  sizeof(client_addr.sun_path,  SOCKET_PATH)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "description": {
+                "text": "strncpy is dangerous, as if the source contains 'n' or more characters, it will not null terminate the destination."
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "samples/quote/server/src/quote_server.cpp"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 2806,
+                        "charLength": 71
+                      },
+                      "insertedContent": {
+                        "text": "strlcpy(client_addr.sun_path,  SOCKET_PATH,  sizeof(client_addr.sun_path)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "Important",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "API.DangerousAPI.BannedFunction"
+            ]
+          }
+        },
+        {
+          "ruleId": "glog-877dd88b-616e-4cec-b123-d57fd159d16f",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Problematic C function detected (memcpy)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "samples/quote/server/src/quote_server.cpp"
+                },
+                "region": {
+                  "startLine": 88,
+                  "startColumn": 8,
+                  "endLine": 88,
+                  "endColumn": 53,
+                  "charOffset": 1941,
+                  "charLength": 45,
+                  "snippet": {
+                    "text": "memcpy(msg_buf.get(), &msg_hdr, msg_hdr_size)",
+                    "rendered": {
+                      "text": "memcpy(msg_buf.get(), &msg_hdr, msg_hdr_size)",
+                      "markdown": "`memcpy(msg_buf.get(), &msg_hdr, msg_hdr_size)`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "There are a number of conditions in which memcpy can introduce a vulnerability (mismatched buffer sizes, null pointers, etc.). More secure alternitives perform additional validation of the source and destination buffer"
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "samples/quote/server/src/quote_server.cpp"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 1941,
+                        "charLength": 45
+                      },
+                      "insertedContent": {
+                        "text": "memcpy_s(msg_buf.get(), <size of msg_buf.get()>,  &msg_hdr,  msg_hdr_size)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "BestPractice",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "API.DangerousAPI.ProblematicFunction"
+            ]
+          }
+        }
+      ],
+      "newlineSequences": [
+        "\r\n",
+        "\n"
+      ]
+    }
+  ]
+}
